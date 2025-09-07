@@ -2,16 +2,22 @@
 
 ![CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-green.svg)
 
-The **Proxmox Hardening Guide** project provides structured, actionable recommendations to secure **Proxmox Virtual Environment (PVE 8.x)** and **Proxmox Backup Server (PBS 3.x)**.  
-These guides are designed for system administrators and security engineers who need **step-by-step hardening instructions, compliance alignment with the CIS Debian 12 Benchmark, and best practices for enterprise and homelab deployments**.  
+The **Proxmox Hardening Guide** project provides structured, actionable recommendations to secure
+**Proxmox Virtual Environment (PVE 8.x)** and **Proxmox Backup Server (PBS 3.x)**.
+
+These guides are designed for system administrators and security engineers who need
+**step-by-step hardening instructions, compliance alignment with the CIS Debian 12 Benchmark, and best practices for enterprise and homelab deployments**.
+
 They extend the industry-recognized *CIS Debian 12 Benchmark* with Proxmox-specific security tasks, practical examples, and real-world best practices.
+
+[Available Hardening Guides](#available-hardening-guides)
 
 ---
 
 ## Project Status
 
 > [!WARNING]
-> This project is under active development and some controls are still being validated.
+> This project is under active development and some controls are still being validated.\
 > Your feedback, testing results, and contributions are strongly encouraged to help improve accuracy, completeness, and reliability.
 
 **ToDos**
