@@ -1,9 +1,36 @@
 # Changelog
 
 This changelog provides a brief overview of recent updates to the documentation.  
-For detailed changes, please refer to **Section D. Change Notes** within each guide.
+For detailed changes, please refer to **Section Change Notes** within each guide.
 
 ---
+
+## 2025-09-25
+
+Thanks to Reddit feedback and [JamesOBenson](https://github.com/JamesOBenson)
+
+### PBS8
+
+- Moved section 1.2.7 to 1.2.8
+- Moved section 3.3 to 3.4
+- Moved section 3.4 to 3.5
+- Moved change notes out of appendix
+- Added 1.1.7: Enable “non-free-firmware” repositories
+- Added 1.1.8: Install CPU microcode
+- Added 1.2.7: Run container platforms inside VMs
+- Added 2.1.4: Emergency “break-glass” root access policy
+- Added 3.3: Ceph pool sizing and failure domains
+- Added Appendix D
+- Minor wording and formatting improvements
+
+### PBS3
+
+- Moved change notes out of appendix
+- Added 1.1.6: Enable “non-free-firmware” repositories
+- Added 1.1.7: Install CPU microcode
+- Added 2.1.4: Emergency “break-glass” root access policy
+- Added Appendix D
+- Minor wording and formatting improvements
 
 ## 2025-08-31
 

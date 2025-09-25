@@ -1,6 +1,6 @@
 # Proxmox Backup Server 3.x Hardening Guide
 
-### Version 0.9.0 - August 31, 2025
+### Version 0.9.1 - September 25, 2025
 
 ### Author: [HomeSecExplorer](https://github.com/HomeSecExplorer)
 
@@ -57,6 +57,8 @@ By continuing to use this document you acknowledge that you have read, understoo
          - [1.1.3 Configure Automatic Security Updates](#113-configure-automatic-security-updates)
          - [1.1.4 Apply ssh-audit Hardening Profile](#114-apply-ssh-audit-hardening-profile)
          - [1.1.5 Enable Full-Disk Encryption](#115-enable-full-disk-encryption)
+         - [1.1.6 Enable Debian “non-free-firmware” repositories](#116-enable-debian-non-free-firmware-repositories)
+         - [1.1.7 Install CPU microcode](#117-install-cpu-microcode)
       - [1.2 Base PBS](#12-base-pbs)
          - [1.2.1 Secure Boot](#121-secure-boot)
             - [1.2.1.1 Enable UEFI Secure Boot](#1211-enable-uefi-secure-boot)
@@ -71,6 +73,7 @@ By continuing to use this document you acknowledge that you have read, understoo
          - [2.1.1 Use Personalized Accounts](#211-use-personalized-accounts)
          - [2.1.2 Grant Least Privilege](#212-grant-least-privilege)
          - [2.1.3 Enable 2FA](#213-enable-2fa)
+         - [2.1.4 Break-glass (Emergency) Access](#214-break-glass-emergency-access)
       - [2.2 API Tokens](#22-api-tokens)
          - [2.2.1 Use Scoped API Tokens](#221-use-scoped-api-tokens)
          - [2.2.2 Grant Least Privilege to Tokens](#222-grant-least-privilege-to-tokens)
@@ -109,7 +112,8 @@ By continuing to use this document you acknowledge that you have read, understoo
    - [A. CIS Benchmark](#a-cis-benchmark)
    - [B. Example Ansible Snippets](#b-example-ansible-snippets)
    - [C. Recovery-Drill Checklist](#c-recovery-drill-checklist)
-   - [D. Change Notes](#d-change-notes)
+   - [D. Installation Checklist](#d-installation-checklists-host)
+6. [Change Notes](#change-notes)
 
 ---
 
@@ -349,12 +353,59 @@ LUKS2 is used for block-device encryption; keys are required at boot.
 
 1. Install Debian 12 with LUKS-encrypted LVM **before** adding the Proxmox repository.
 2. Store recovery keys in an offline password manager or HSM.
+3. **If you deploy ZFS:** consider **ZFS native encryption** at the dataset/zvol level instead of whole-disk LUKS, to allow per-dataset keys and more flexible unlock workflows.
+ Choose based on your operational model and recovery plan.
 
 > [!WARNING]
 > Controls have **not** yet been validated. Test thoroughly.
 
 > [!NOTE]
 > Performance impact is typically < 5 % on modern CPUs with AES-NI.
+
+**Execution Status**
+
+- [ ] YES - Control implemented
+- [ ] NO  - Control not implemented
+
+---
+
+##### 1.1.6 Enable Debian “non-free-firmware” repositories
+
+**Level 1**
+
+**Description**\
+Enable Debian non-free-firmware alongside main and contrib to ensure required firmware and microcode are available.
+
+**Measures**
+
+- Example `/etc/apt/sources.list`:
+  ```ini
+  deb http://deb.debian.org/debian bookworm main contrib non-free-firmware
+  deb http://deb.debian.org/debian bookworm-updates main contrib non-free-firmware
+  deb http://security.debian.org/debian-security bookworm-security main contrib non-free-firmware
+  ```
+- `apt update` then install required microcode and firmware packages as needed.
+
+**Execution Status**
+
+- [ ] YES - Control implemented
+- [ ] NO  - Control not implemented
+
+---
+
+##### 1.1.7 Install CPU microcode
+
+**Level 1**
+
+**Description**\
+Ensures the latest vendor microcode mitigations and stability fixes are applied at boot. Addresses CPU errata and security vulnerabilities that cannot be fully fixed by system firmware alone.
+
+**Measures**
+
+- Install CPU microcode updates:
+   - Intel: `apt install intel-microcode`
+   - AMD: `apt install amd64-microcode`
+   - Reboot to apply (microcode is loaded at boot).
 
 **Execution Status**
 
@@ -436,11 +487,12 @@ to `/dev/mem`, and kernel-space tampering, even by a compromised root account.
 **Level 1**
 
 **Description**\
-Separates management and backup traffic from backend storage traffic.
+Separates IPMI, management and backup traffic from backend storage traffic.
 This reduces the risk of lateral movement and prevents backup traffic from congesting the storage network.
 
 **Measures**
 
+- Place the host's IPMI interface in a dedicated **OoB-management VLAN** that is **not** routed to the Internet.
 - Place the PBS management interface in a dedicated **management VLAN** that is **not** routed to the Internet.
 - Mount NFS, SMB, or other backend storage on a dedicated **storage VLAN** that is **not** routed to the Internet.
 - Enforce inter-VLAN firewall rules at the router and/or Host Firewall layer.
@@ -457,7 +509,8 @@ This reduces the risk of lateral movement and prevents backup traffic from conge
 **Level 1**
 
 **Description**\
-Guarantees access to the **Enterprise update repository**, long-term maintenance fixes, and official vendor support. Many regulated environments require proof of active vendor maintenance for all production systems.
+Guarantees access to the **Enterprise update repository**, long-term maintenance fixes, and official vendor support.
+This is an **operational** control for maintainability and compliance evidence in regulated environments. It is **not** a security hardening control on its own.
 
 **Measures**
 
@@ -641,6 +694,33 @@ Two-factor authentication (2FA) adds an additional factor (TOTP or YubiKey OTP) 
 **Measures**
 
 - `Configuration ▸ Access Control ▸ Two Factor Authentication` → enable and enroll token.
+
+**Execution Status**
+
+- [ ] YES - Control implemented
+- [ ] NO  - Control not implemented
+
+---
+
+##### 2.1.4 Break-glass (Emergency) Access
+
+**Level 1**
+
+**Description**\
+Maintain a sealed, offline “break-glass” root credential for emergencies **without** 2FA. Use personalized accounts with 2FA for daily operations.
+
+**Measures**
+
+- Configure personalized @pam or directory accounts with 2FA for admins.
+- Generate a strong root password and store it offline in a tamper-evident container.
+- Log any use of break-glass. Rotate the password immediately after use.
+
+- Password policy:
+   - min length: 20
+   - min uppercase: 3
+   - min lowercase: 3
+   - min numbers: 3
+   - min special: 3
 
 **Execution Status**
 
@@ -1381,8 +1461,19 @@ All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Le
 2. Quarterly file-level restore test: Restore on a single VM disk.
 3. Document outcomes, time-to-recover, and update runbooks.
 
-### D. Change Notes
+### D. Installation checklists Host
+
+- [ ] Firmware, IPMI and BIOS updated
+- [ ] Prepare Network segmentation
+- [ ] Install Debian with correct partitioning
+- [ ] Execute Hardening Guide
+- [ ] Create/Update documentation
+
+---
+
+## Change Notes
 
 | Version | Date       | Author              | Key Changes                                    | Reviewed By |
 |---------|------------|---------------------|------------------------------------------------|-------------|
 | 0.9.0   | 2025-08-31 | HomeSecExplorer     | Initial creation.                              |   --------  |
+| 0.9.1   | 2025-09-25 | HomeSecExplorer     | Expanded guide: move Change Notes; edit 1.1.5 (add ZFS), 1.2.2 (IPMI), rephrase 1.2.3, 4.2.2; added 1.1.6 non-free-firmware, 1.1.7 CPU microcode, 2.1.4 break-glass access with password policy, Appendix D Installation checklists Host; minor edits. |   --------  |
