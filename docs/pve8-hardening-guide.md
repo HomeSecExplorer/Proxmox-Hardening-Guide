@@ -1,6 +1,6 @@
 # Proxmox VE 8.x Hardening Guide
 
-### Version 0.9.0 - August 31, 2025
+### Version 0.9.1 - September 25, 2025
 
 ### Author: [HomeSecExplorer](https://github.com/HomeSecExplorer)
 
@@ -36,7 +36,7 @@ By continuing to use this document you acknowledge that you have read, understoo
 
 ## Table of Contents
 
-1. [Terms of Use](#terms-of-use)
+1. [Terms of Use](#termsofuse)
 2. [Overview](#overview)
    - [Usage Information](#usage-information)
    - [Safe Remediation Workflow](#safe-remediation-workflow)
@@ -65,21 +65,23 @@ By continuing to use this document you acknowledge that you have read, understoo
          - [1.2.2 Network Separation](#122-network-separation)
          - [1.2.3 Maintain a Valid Proxmox Subscription](#123-maintain-a-valid-proxmox-subscription)
          - [1.2.4 Enable the PVE Firewall](#124-enable-the-pve-firewall)
-         - [1.2.5 PVE Firewall – Default FORWARD Policy “DROP”](#125-pve-firewall---default-forward-policy-drop)
+         - [1.2.5 PVE Firewall - Default FORWARD Policy “DROP”](#125-pve-firewall---default-forward-policy-drop)
          - [1.2.6 Review/Configure Kernel Samepage Merging (KSM)](#126-reviewconfigure-kernel-samepage-merging-ksm)
-         - [1.2.7 Unprivileged Containers by Default](#127-unprivileged-containers-by-default)
+         - [1.2.7 Avoid LXC - Run Container Platforms Inside VMs](#127-avoid-lxc---run-container-platforms-inside-vms)
+         - [1.2.8 Unprivileged Containers by Default](#128-unprivileged-containers-by-default)
          - [1.3 SDN Hardening](#13-sdn-hardening)
             - [1.3.1 SDN Baseline (Zones, VNets, Isolation)](#131-sdn-baseline-zones-vnets-isolation)
-            - [1.3.2 SDN Firewall Defaults (VNet‑level)](#132-sdn-firewall-defaults-vnet-level)
+            - [1.3.2 SDN Firewall Defaults (VNet‑level)](#132-sdn-firewall-defaults-vnetlevel)
             - [1.3.3 DHCP/RA Guard on VNets](#133-dhcpra-guard-on-vnets)
             - [1.3.4 SDN Overlay Transport Hardening (VXLAN)](#134-sdn-overlay-transport-hardening-vxlan)
             - [1.3.5 EVPN/BGP Controller Hardening](#135-evpnbgp-controller-hardening)
-            - [1.3.6 Bridge &amp; Kernel Settings for SDN](#136-bridge--kernel-settings-for-sdn)
+            - [1.3.6 Bridge & Kernel Settings for SDN](#136-bridge--kernel-settings-for-sdn)
    - [2 GUI Access & ACLs](#2-gui-access--acls)
       - [2.1 Users](#21-users)
          - [2.1.1 Use Personalized Accounts](#211-use-personalized-accounts)
          - [2.1.2 Grant Least Privilege](#212-grant-least-privilege)
          - [2.1.3 Enable 2FA](#213-enable-2fa)
+         - [2.1.4 root emergency access](#214-break-glass-emergency-access)
       - [2.2 API Tokens](#22-api-tokens)
          - [2.2.1 Use Scoped API Tokens](#221-use-scoped-api-tokens)
          - [2.2.2 Grant Least Privilege to Tokens](#222-grant-least-privilege-to-tokens)
@@ -92,8 +94,9 @@ By continuing to use this document you acknowledge that you have read, understoo
    - [3 Cluster Protections](#3-cluster-protections)
       - [3.1 Provide Redundant Corosync Links](#31-provide-redundant-corosync-links)
       - [3.2 Secure Inter-Node Communication](#32-secure-inter-node-communication)
-      - [3.3 Ceph OSD Encryption](#33-ceph-osd-encryption)
-      - [3.4 Ceph Messenger Encryption (In-Flight)](#34-ceph-messenger-encryption-in-flight)
+      - [3.3 Ceph pool sizing and failure domains](#33-ceph-pool-sizing-and-failure-domains)
+      - [3.4 Ceph OSD Encryption](#34-ceph-osd-encryption)
+      - [3.5 Ceph Messenger Encryption (In-Flight)](#35-ceph-messenger-encryption-in-flight)
    - [4 Backup & Disaster Recovery](#4-backup--disaster-recovery)
       - [4.1 Enforce 3-2-1 Backup Strategy](#41-enforce-3-2-1-backup-strategy)
       - [4.2 Backup Host Configuration](#42-backup-host-configuration)
@@ -119,7 +122,8 @@ By continuing to use this document you acknowledge that you have read, understoo
    - [A. CIS Benchmark](#a-cis-benchmark)
    - [B. Example Ansible Snippets](#b-example-ansible-snippets)
    - [C. Recovery-Drill Checklist](#c-recovery-drill-checklist)
-   - [D. Change Notes](#d-change-notes)
+   - [D. Installation Checklist](#d-installation-checklists-host-and-guest)
+6. [Change Notes](#change-notes)
 
 ---
 
@@ -204,7 +208,7 @@ Update the table after **every** hardware or configuration change.
 
 | Hostname | IP Address | Role / Cluster | OS Version | CIS Level | Hardened On | Location | Notes           |
 | -------- | ---------- | -------------- | ---------- | --------- | ----------- | -------- | --------------- |
-| pve01    | 10.0.10.10 | Stand-alone    | Debian 12  | Level 2   | **No**        | DC1-R2   | No subscription |
+| pve01    | 10.0.10.10 | Standalone     | Debian 12  | Level 2   | **No**      | DC1-R2   | No subscription |
 | pvec1n01 | 10.0.10.11 | Cluster-1      | Debian 12  | Level 1   | Jul 2025    | DC1-R1   | Ceph-enabled    |
 | pvec1n02 | 10.0.10.12 | Cluster-1      | Debian 12  | Level 1   | Jul 2025    | DC1-R1   | Ceph-enabled    |
 | pvec1n03 | 10.0.10.13 | Cluster-1      | Debian 12  | Level 1   | Jul 2025    | DC1-R1   | Ceph-enabled    |
@@ -259,7 +263,7 @@ secure permissions, basic hardening of SSH, and kernel parameter tuning.
 > ```
 
 > [!NOTE]
-> Skip CIS Debian 12 Benchmark § 4 *Host-Based Firewall* **if** you enable the PVE Firewall in control [1.2.3](#123enablethepvefirewall) of this guide.
+> Skip CIS Debian 12 Benchmark § 4 *Host-Based Firewall* **if** you enable the PVE Firewall in control [1.2.4](#124-enable-the-pve-firewall) of this guide.
 
 > [!TIP]
 > For Ansible automation, check out the *ansible-lockdown* role for Debian 12 CIS.  
@@ -423,6 +427,8 @@ LUKS2 is used for block-device encryption; keys are required at boot.
 
 1. Install Debian 12 with LUKS-encrypted LVM **before** adding the Proxmox repository.
 2. Store recovery keys in an offline password manager or HSM.
+3. **If you deploy ZFS:** consider **ZFS native encryption** at the dataset/zvol level instead of whole-disk LUKS, to allow per-dataset keys and more flexible unlock workflows.
+ Choose based on your operational model and recovery plan.
 
 > [!WARNING]
 > Controls have **not** yet been validated. Test thoroughly.
@@ -463,6 +469,53 @@ Enables safe mount options (`defaults,noatime,discard,nodev,nosuid`) without bre
   mount -a
   mount | grep \/var\/lib\/vz
   ```
+
+**Execution Status**
+
+- [ ] YES - Control implemented
+- [ ] NO  - Control not implemented
+
+---
+
+##### 1.1.7 Enable Debian “non-free-firmware” repositories
+
+**Level 1**
+
+**Description**\
+Enable Debian non-free-firmware alongside main and contrib to ensure required firmware and microcode are available.
+
+**Measures**
+
+- Example `/etc/apt/sources.list`:
+
+  ```ini
+  deb http://deb.debian.org/debian bookworm main contrib non-free-firmware
+  deb http://deb.debian.org/debian bookworm-updates main contrib non-free-firmware
+  deb http://security.debian.org/debian-security bookworm-security main contrib non-free-firmware
+  ```
+
+- `apt update` then install required microcode and firmware packages as needed.
+
+**Execution Status**
+
+- [ ] YES - Control implemented
+- [ ] NO  - Control not implemented
+
+---
+
+##### 1.1.8 Install CPU microcode
+
+**Level 1**
+
+**Description**\
+Ensures the latest vendor microcode mitigations and stability fixes are applied at boot. Addresses CPU errata and security vulnerabilities that cannot be fully fixed by system firmware alone.
+
+**Measures**
+
+- Install CPU microcode updates:
+   - Intel: `apt install intel-microcode`
+   - AMD: `apt install amd64-microcode`
+   - Reboot to apply (microcode is loaded at boot).
 
 **Execution Status**
 
@@ -544,11 +597,12 @@ to `/dev/mem`, and kernel-space tampering, even by a compromised root account.
 **Level 1**
 
 **Description**\
-Separates management, cluster, storage, and tenant traffic.
+Separates IPMI, management, cluster, storage, and tenant traffic.
 This limits lateral movement opportunities for an attacker and reduces broadcast traffic.
 
 **Measures**
 
+- Place the host's IPMI interface in a dedicated **OoB-management VLAN** that is **not** routed to the Internet.
 - Place the PVE management interface in a dedicated **management VLAN** that is **not** routed to the Internet.
 - Use additional VLANs or NICs for:
    - **Cluster traffic** (Corosync / Ceph) - non-routable - at least **two** interfaces
@@ -569,7 +623,8 @@ This limits lateral movement opportunities for an attacker and reduces broadcast
 **Level 1**
 
 **Description**\
-Guarantees access to the **Enterprise update repository**, long-term maintenance fixes, and official vendor support. Many regulated environments require proof of active vendor maintenance for all production systems.
+Guarantees access to the **Enterprise update repository**, long-term maintenance fixes, and official vendor support.
+This is an **operational** control for maintainability and compliance evidence in regulated environments. It is **not** a security hardening control on its own.
 
 **Measures**
 
@@ -680,14 +735,34 @@ In multi‑tenant or mixed‑trust clusters, **disable KSM**. In single‑tenant
 
 ---
 
-##### 1.2.7 Unprivileged Containers by Default
+##### 1.2.7 Avoid LXC - Run Container Platforms Inside VMs
 
 **Level 1**
 
 **Description**\
-Run LXC containers unprivileged so that the container's root user is mapped to an unprivileged host UID/GID via user namespaces.
-This reduces the impact of container escapes and enables safer device and mount handling.
-Use privileged containers only when a specific, justified need exists.
+Do **not** use LXC containers on the Proxmox host. Instead, run container platforms (e.g., Docker, Kubernetes) inside a fully virtualized VM.
+This ensures proper isolation and keeps the hypervisor dedicated to virtualization only.
+
+**Measures**
+
+- Provision a dedicated VM for your container runtime.
+- Apply the guest OS and container runtime hardening baseline inside that VM.
+- Expose only the necessary ports from the *VM* to *FRONTEND* networks.
+
+**Execution Status**
+
+- [ ] YES - Control implemented
+- [ ] NO  - Control not implemented
+
+---
+
+##### 1.2.8 Unprivileged Containers by Default
+
+**Level 1**
+
+**Description**\
+Prefer control **1.2.7 Avoid LXC - Run Container Platforms Inside VMs**. If that is not an option in your environment, run LXC containers unprivileged so that the container's root user is mapped to an unprivileged host UID/GID via user namespaces.
+This reduces the impact of container escapes and enables safer device and mount handling. Use privileged containers only when a specific, justified need exists.
 
 **Measures**
 
@@ -936,6 +1011,33 @@ Two-factor authentication (2FA) adds an additional factor (TOTP or YubiKey OTP) 
 
 ---
 
+##### 2.1.4 Break-glass (Emergency) Access
+
+**Level 1**
+
+**Description**\
+Maintain a sealed, offline “break-glass” root credential for emergencies **without** 2FA. Use personalized accounts with 2FA for daily operations.
+
+**Measures**
+
+- Configure personalized @pam or directory accounts with 2FA for admins.
+- Generate a strong root password and store it offline in a tamper-evident container.
+- Log any use of break-glass. Rotate the password immediately after use.
+
+- Password policy:
+   - min length: 20
+   - min uppercase: 3
+   - min lowercase: 3
+   - min numbers: 3
+   - min special: 3
+
+**Execution Status**
+
+- [ ] YES - Control implemented
+- [ ] NO  - Control not implemented
+
+---
+
 #### 2.2 API Tokens
 
 ##### 2.2.1 Use Scoped API Tokens
@@ -1028,7 +1130,7 @@ with a certificate issued by an internal CA or Let’s Encrypt.
 **Measures**
 
 1. **Per host**: Navigate to `Datacenter ▸ <<node>> ▸ System ▸ Certificates` and upload the full-chain PEM certificate with its private key.  
-2. Prefer ACME/Let’s Encrypt for automated issuance, see [2.3.2 Automate Certificate Renewal](#232automatecertificaterenewal).
+2. Prefer ACME/Let’s Encrypt for automated issuance, see [2.3.2 Automate Certificate Renewal](#232-automate-certificate-renewal).
 
 **Execution Status**
 
@@ -1181,7 +1283,32 @@ Verify `secauth` is enabled (default true); no change needed unless explicitly d
 
 ---
 
-##### 3.3 Ceph OSD Encryption
+##### 3.3 Ceph Pool Sizing and Failure Domains
+
+**Level 1**
+
+**Description**\
+Set `size` and `min_size` to meet failure tolerance and configure CRUSH rules so replicas land on different failure domains.
+
+**Measures**
+
+- Typical replication
+   - `size = 3`, `min_size = 2` for tolerance of one OSD or host failure.
+- CRUSH rules
+   - Choose failure domain per risk: host, chassis, rack or row.
+   - Verify placement: `ceph osd tree` and `ceph osd crush rule list` then test with ceph osd map.
+- Health checks
+   - Alert on `HEALTH_WARN` and `HEALTH_ERR`.
+   - Simulate failures in a lab to confirm data remains available with your min_size.
+
+**Execution Status**
+
+- [ ] YES - Control implemented
+- [ ] NO  - Control not implemented
+
+---
+
+##### 3.4 Ceph OSD Encryption
 
 **Level 2**
 
@@ -1199,7 +1326,7 @@ Encrypts OSD data.
 
 ---
 
-##### 3.4 Ceph Messenger Encryption (In-Flight)
+##### 3.5 Ceph Messenger Encryption (In-Flight)
 
 **Level 2**
 
@@ -1442,7 +1569,7 @@ Protects backups stored off-site or in object storage from unauthorized access.
 **Measures**
 
 - Use PBS client-side encryption (`Datacenter ▸ Storage` PBS options **Encryption**).
-- Keep the key in an HSM or Vault.
+- Store an **offline** copy of the key (Vault/HSM or encrypted offline media).
 
 **Execution Status**
 
@@ -1717,8 +1844,28 @@ All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Le
 4. Corosync link loss: Disable primary ring interface; ensure quorum re-establishes on ring 1.
 5. Document outcomes, time-to-recover, and update runbooks.
 
-### D. Change Notes
+### D. Installation checklists (Host and Guest)
+
+#### D.1 Host Install Checklist
+
+- [ ] Firmware, IPMI and BIOS updated
+- [ ] Prepare Network segmentation
+- [ ] Install Debian with correct partitioning
+- [ ] Execute Hardening Guide
+- [ ] Create/Update documentation
+
+#### D.2 Guest Install Checklist
+
+- [ ] VM type and machine model selected appropriately
+- [ ] VirtIO devices (net, disk), qemu-guest-agent installed
+- [ ] Baseline OS hardening profile applied
+- [ ] Minimal open services; firewall active inside guest
+
+---
+
+## Change Notes
 
 | Version | Date       | Author              | Key Changes                                    | Reviewed By |
 |---------|------------|---------------------|------------------------------------------------|-------------|
 | 0.9.0   | 2025-08-31 | HomeSecExplorer     | Initial creation.                              |   --------  |
+| 0.9.1   | 2025-09-25 | HomeSecExplorer     | Expanded guide: move Change Notes, 1.2.7 to 1.2.8, 3.3 to 3.4, 3.4 to 3.5; edit 1.1.5 (add ZFS), 1.2.2 (IPMI), rephrase 1.2.3, 1.2.8, 4.2.2/4.4; added 1.1.7 non-free-firmware, 1.1.8 CPU microcode, 2.1.4 break-glass access with password policy, 3.3 Ceph pool sizing and failure domains, Appendix D Installation checklists Host&VMs; minor edits. |   --------  |

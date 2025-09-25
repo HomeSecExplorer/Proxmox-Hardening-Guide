@@ -32,7 +32,7 @@ Some steps are flagged with “Controls have **not** yet been validated.” If y
 - 1.2.1.1 - Enable UEFI Secure Boot
 - 1.2.1.2 - Kernel Lockdown (Integrity Mode)
 - 1.3 - SDN
-- 3.4 - Ceph Messenger Encryption (In-Flight)
+- 3.5 - Ceph Messenger Encryption (In-Flight)
 - 5.3.2 - Rootkit Detection
 
 **PBS 3 guide - items to validate**
@@ -52,8 +52,8 @@ Some steps are flagged with “Controls have **not** yet been validated.” If y
 
 | Guide | Product | Guide Version | Path |
 |-------|---------|---------|------|
-| **PVE 8** | Proxmox Virtual Environment 8.x | 0.9.0 - 31 August 2025 | [`docs/pve8-hardening-guide.md`](docs/pve8-hardening-guide.md) |
-| **PBS 3** | Proxmox Backup Server 3.x | 0.9.0 - 31 August 2025 | [`docs/pbs3-hardening-guide.md`](docs/pbs3-hardening-guide.md) |
+| **PVE 8** | Proxmox Virtual Environment 8.x | 0.9.1 - 25 September 2025 | [`docs/pve8-hardening-guide.md`](docs/pve8-hardening-guide.md) |
+| **PBS 3** | Proxmox Backup Server 3.x | 0.9.1 - 25 September 2025 | [`docs/pbs3-hardening-guide.md`](docs/pbs3-hardening-guide.md) |
 
 **Key Benefits:**
 

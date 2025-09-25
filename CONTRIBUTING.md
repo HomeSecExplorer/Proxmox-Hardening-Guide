@@ -8,7 +8,7 @@ Thanks for helping improve the **Proxmox Hardening Guides**!
 2. Fork, create a feature branch, then open a PR against **dev**. The main branch remains stable, while contributions are reviewed, tested, and merged in an organized way.
 3. One logical change per PR.
 4. Follow the existing typographical conventions.
-5. If your change is merged, add an entry to the **Change Notes** appendix.
+5. If your change is merged, add an entry to the **Change Notes**.
 
 ### Commit Style
 
