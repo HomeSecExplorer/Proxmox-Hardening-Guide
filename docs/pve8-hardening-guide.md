@@ -617,7 +617,7 @@ Setting the default **FORWARD** policy to **DROP** blocks all inter-guest or rou
 
 **Measures**
 
-1. Complete **1.2.3 Enable the PVE Firewall**.
+1. Complete **1.2.4 Enable the PVE Firewall**.
 2. Navigate to **Datacenter ▸ Firewall ▸ Options** and set:
    - **FORWARD** = **DROP**
 3. For every Node:
