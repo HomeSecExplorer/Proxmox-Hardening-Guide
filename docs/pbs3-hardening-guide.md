@@ -1,6 +1,6 @@
 # Proxmox Backup Server 3.x Hardening Guide
 
-### Version 0.9.1 - September 25, 2025
+### Version 0.9.2 - October 05, 2025
 
 ### Author: [HomeSecExplorer](https://github.com/HomeSecExplorer)
 
@@ -538,13 +538,12 @@ This isolates backup writes from the OS, helps avoid full-disk conditions, and a
 - Create a **separate block device/LV/mount** per datastore (recommended), or a separate ZFS dataset per datastore.
 - Use the following mount options and properties:
    - ext4 / XFS
-      - mount options: `defaults,relatime,nodev,nosuid,noexec`
+      - mount options: `defaults,nodev,nosuid,noexec`
 - **ZFS dataset**
    - properties:
       ```bash
       # example pool/dataset: tank/pbs/ds1
       zfs create -o mountpoint=<</mnt/pbs-ds1>> <<tank/pbs/ds1>>
-      zfs set atime=off            <<tank/pbs/ds1>>
       zfs set compression=zstd-3   <<tank/pbs/ds1>>
       zfs set xattr=sa             <<tank/pbs/ds1>>
       zfs set acltype=posixacl     <<tank/pbs/ds1>>
@@ -580,7 +579,7 @@ Configure authentication and transport encryption, and use mount options that re
 
 - **NFS (preferred over SMB when available)**
    - Use **NFSv4.1/4.2** over TCP with Kerberos privacy:
-      - Client mount options: `rw,vers=4.2,sec=krb5p,hard,noatime,nodev,nosuid,noexec,_netdev,x-systemd.automount,x-systemd.idle-timeout=600`
+      - Client mount options: `rw,vers=4.2,sec=krb5p,hard,nodev,nosuid,noexec,_netdev,x-systemd.automount,x-systemd.idle-timeout=600`
    - **Server-side export** hardening (on the NFS server):
       - Prefer `sync` exports (with SLOG if using ZFS), `root_squash`, `sec=krb5p`, and limit `rw` to PBS IPs.
       - Disable insecure legacy protocols/versions; use `v4 only` where possible.
@@ -1477,3 +1476,4 @@ All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Le
 |---------|------------|---------------------|------------------------------------------------|-------------|
 | 0.9.0   | 2025-08-31 | HomeSecExplorer     | Initial creation.                              |   --------  |
 | 0.9.1   | 2025-09-25 | HomeSecExplorer     | Expanded guide: move Change Notes; edit 1.1.5 (add ZFS), 1.2.2 (IPMI), rephrase 1.2.3, 4.2.2; added 1.1.6 non-free-firmware, 1.1.7 CPU microcode, 2.1.4 break-glass access with password policy, Appendix D Installation checklists Host; minor edits. |   --------  |
+| 0.9.2   | 2025-10-05 | HomeSecExplorer     | Remove 1.2.4 relatime and ZFS atime=off; 1.2.5 noatime mount options |   --------  |

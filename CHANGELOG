@@ -5,6 +5,19 @@ For detailed changes, please refer to **Section Change Notes** within each guide
 
 ---
 
+## 2025-10-05
+
+Thanks to [Onslow](https://forum.proxmox.com/members/onslow.317257/)
+
+### PBS8
+
+- Removed noatime in 1.1.6
+
+### PBS3
+
+- Removed relatime and atime=off in 1.2.4
+- Removed noatime in 1.2.5
+
 ## 2025-09-25
 
 Thanks to Reddit feedback and [JamesOBenson](https://github.com/JamesOBenson)
