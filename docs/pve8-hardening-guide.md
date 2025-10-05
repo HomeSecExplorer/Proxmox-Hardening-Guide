@@ -1,6 +1,6 @@
 # Proxmox VE 8.x Hardening Guide
 
-### Version 0.9.1 - September 25, 2025
+### Version 0.9.2 - October 05, 2025
 
 ### Author: [HomeSecExplorer](https://github.com/HomeSecExplorer)
 
@@ -449,7 +449,7 @@ LUKS2 is used for block-device encryption; keys are required at boot.
 
 **Description**\
 Isolates Proxmox VE local directory storage (`/var/lib/vz`) from the root filesystem to prevent space exhaustion from guest images, ISOs, and templates.
-Enables safe mount options (`defaults,noatime,discard,nodev,nosuid`) without breaking tooling. **Do not** use `noexec` here, guest hooks and maintenance tools may need to run from this path.
+Enables safe mount options (`defaults,discard,nodev,nosuid`) without breaking tooling. **Do not** use `noexec` here, guest hooks and maintenance tools may need to run from this path.
 
 **Measures**
 
@@ -461,7 +461,7 @@ Enables safe mount options (`defaults,noatime,discard,nodev,nosuid`) without bre
   ```
   Add to `/etc/fstab`:
   ```fstab
-  /dev/<<VG>>/vz  /var/lib/vz  xfs  defaults,noatime,discard,nodev,nosuid  0 2
+  /dev/<<VG>>/vz  /var/lib/vz  xfs  defaults,discard,nodev,nosuid  0 2
   ```
   Then mount and verify:
   ```bash
@@ -1869,3 +1869,4 @@ All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Le
 |---------|------------|---------------------|------------------------------------------------|-------------|
 | 0.9.0   | 2025-08-31 | HomeSecExplorer     | Initial creation.                              |   --------  |
 | 0.9.1   | 2025-09-25 | HomeSecExplorer     | Expanded guide: move Change Notes, 1.2.7 to 1.2.8, 3.3 to 3.4, 3.4 to 3.5; edit 1.1.5 (add ZFS), 1.2.2 (IPMI), rephrase 1.2.3, 1.2.8, 4.2.2/4.4; added 1.1.7 non-free-firmware, 1.1.8 CPU microcode, 2.1.4 break-glass access with password policy, 3.3 Ceph pool sizing and failure domains, Appendix D Installation checklists Host&VMs; minor edits. |   --------  |
+| 0.9.2   | 2025-10-05 | HomeSecExplorer     | Remove 1.1.6 noatime mount option |   --------  |

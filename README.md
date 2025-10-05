@@ -52,8 +52,8 @@ Some steps are flagged with “Controls have **not** yet been validated.” If y
 
 | Guide | Product | Guide Version | Path |
 |-------|---------|---------|------|
-| **PVE 8** | Proxmox Virtual Environment 8.x | 0.9.1 - 25 September 2025 | [`docs/pve8-hardening-guide.md`](docs/pve8-hardening-guide.md) |
-| **PBS 3** | Proxmox Backup Server 3.x | 0.9.1 - 25 September 2025 | [`docs/pbs3-hardening-guide.md`](docs/pbs3-hardening-guide.md) |
+| **PVE 8** | Proxmox Virtual Environment 8.x | 0.9.2 - 05 October 2025 | [`docs/pve8-hardening-guide.md`](docs/pve8-hardening-guide.md) |
+| **PBS 3** | Proxmox Backup Server 3.x | 0.9.2 - 05 October 2025 | [`docs/pbs3-hardening-guide.md`](docs/pbs3-hardening-guide.md) |
 
 **Key Benefits:**
 
