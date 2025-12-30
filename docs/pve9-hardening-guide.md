@@ -1,6 +1,6 @@
-# Proxmox VE 8.x Hardening Guide
+# Proxmox VE 9.x Hardening Guide
 
-### Version 0.9.3 - December 30, 2025
+### Version 0.9.0 - December 30, 2025
 
 ### Author: [HomeSecExplorer](https://github.com/HomeSecExplorer)
 
@@ -52,8 +52,8 @@ By continuing to use this document you acknowledge that you have read, understoo
 3. [Recommendations](#recommendations)
    - [1 Initial Setup](#1-initial-setup)
       - [1.1 Base OS](#11-base-os)
-         - [1.1.1 Apply Debian 12 CIS Level 1](#111-apply-debian-12-cis-level-1)
-         - [1.1.2 Apply Debian 12 CIS Level 2](#112-apply-debian-12-cis-level-2)
+         - [1.1.1 Apply Debian 13 CIS Level 1](#111-apply-debian-13-cis-level-1)
+         - [1.1.2 Apply Debian 13 CIS Level 2](#112-apply-debian-13-cis-level-2)
          - [1.1.3 Configure Automatic Security Updates](#113-configure-automatic-security-updates)
          - [1.1.4 Apply ssh-audit Hardening Profile](#114-apply-ssh-audit-hardening-profile)
          - [1.1.5 Enable Full-Disk Encryption](#115-enable-full-disk-encryption)
@@ -67,7 +67,7 @@ By continuing to use this document you acknowledge that you have read, understoo
          - [1.2.4 Enable the PVE Firewall](#124-enable-the-pve-firewall)
          - [1.2.5 PVE Firewall - Default FORWARD Policy “DROP”](#125-pve-firewall---default-forward-policy-drop)
          - [1.2.6 Review/Configure Kernel Samepage Merging (KSM)](#126-reviewconfigure-kernel-samepage-merging-ksm)
-         - [1.2.7 Avoid LXC - Run Container Platforms Inside VMs](#127-avoid-lxc---run-container-platforms-inside-vms)
+         - [1.2.7 Avoid LXC/OCI - Run Container Platforms Inside VMs](#127-avoid-lxcoci---run-container-platforms-inside-vms)
          - [1.2.8 Unprivileged Containers by Default](#128-unprivileged-containers-by-default)
          - [1.3 SDN Hardening](#13-sdn-hardening)
             - [1.3.1 SDN Baseline (Zones, VNets, Isolation)](#131-sdn-baseline-zones-vnets-isolation)
@@ -134,7 +134,7 @@ By continuing to use this document you acknowledge that you have read, understoo
 
 ### Usage Information
 
-This guide provides **prescriptive hardening guidance** for Proxmox VE 8.
+This guide provides **prescriptive hardening guidance** for Proxmox VE 9.
 It does **not** guarantee absolute security;
 integrate it into a comprehensive cybersecurity program. Always approach changes with caution and follow a structured test-and-release process.
 
@@ -156,7 +156,7 @@ integrate it into a comprehensive cybersecurity program. Always approach changes
 
 ### Target Technology Details
 
-This guidance was developed and validated on **Proxmox VE 8** running on **Debian 12 “bookworm”** (x86-64).
+This guidance was developed and validated on **Proxmox VE 9** running on **Debian 13 “trixie”** (x86-64).
 
 #### Assumptions
 
@@ -165,7 +165,7 @@ This guidance was developed and validated on **Proxmox VE 8** running on **Debia
 
 #### Installation Note
 
-To satisfy several CIS Debian Benchmark controls (for example, partition layout), install **Debian 12 first** and then add the Proxmox VE repository **instead of** using the Proxmox ISO installer.
+To satisfy several CIS Debian Benchmark controls (for example, partition layout), install **Debian 13 first** and then add the Proxmox VE repository **instead of** using the Proxmox ISO installer.
 
 #### Pre-deployment Checklist
 
@@ -184,7 +184,7 @@ To satisfy several CIS Debian Benchmark controls (for example, partition layout)
 
 ### References
 
-- *CIS Debian Linux 12 Benchmark* - [CIS Debian](https://www.cisecurity.org/benchmark/debian_linux)
+- *CIS Debian Linux 13 Benchmark* - [CIS Debian](https://www.cisecurity.org/benchmark/debian_linux)
 - *Proxmox VE Administration Guide* - [PVE admin guide](https://pve.proxmox.com/pve-docs/pve-admin-guide.html)
 - *Debian Security Hardening Manual* - [Debian hardening](https://www.debian.org/doc/manuals/securing-debian-manual/index.en.html)
 
@@ -208,10 +208,10 @@ Update the table after **every** hardware or configuration change.
 
 | Hostname | IP Address | Role / Cluster | OS Version | CIS Level | Hardened On | Location | Notes           |
 | -------- | ---------- | -------------- | ---------- | --------- | ----------- | -------- | --------------- |
-| pve01    | 10.0.10.10 | Standalone     | Debian 12  | Level 2   | **No**      | DC1-R2   | No subscription |
-| pvec1n01 | 10.0.10.11 | Cluster-1      | Debian 12  | Level 1   | Jul 2025    | DC1-R1   | Ceph-enabled    |
-| pvec1n02 | 10.0.10.12 | Cluster-1      | Debian 12  | Level 1   | Jul 2025    | DC1-R1   | Ceph-enabled    |
-| pvec1n03 | 10.0.10.13 | Cluster-1      | Debian 12  | Level 1   | Jul 2025    | DC1-R1   | Ceph-enabled    |
+| pve01    | 10.0.10.10 | Standalone     | Debian 13  | Level 2   | **No**      | DC1-R2   | No subscription |
+| pvec1n01 | 10.0.10.11 | Cluster-1      | Debian 13  | Level 1   | Dec 2025    | DC1-R1   | Ceph-enabled    |
+| pvec1n02 | 10.0.10.12 | Cluster-1      | Debian 13  | Level 1   | Dec 2025    | DC1-R1   | Ceph-enabled    |
+| pvec1n03 | 10.0.10.13 | Cluster-1      | Debian 13  | Level 1   | Dec 2025    | DC1-R1   | Ceph-enabled    |
 
 ### Hardening Level Selection
 
@@ -233,20 +233,20 @@ Apply these controls during or immediately after installation. Retrofitting them
 
 ---
 
-##### 1.1.1 Apply Debian 12 CIS Level 1
+##### 1.1.1 Apply Debian 13 CIS Level 1
 
 **Level 1**
 
 **Description**\
-Establishes a secure **minimum** configuration for Debian 12 that balances security with stability. Controls include partitioning,
+Establishes a secure **minimum** configuration for Debian 13 that balances security with stability. Controls include partitioning,
 secure permissions, basic hardening of SSH, and kernel parameter tuning.
 
 **Measures**
 
-- Apply **all** remediations in the *CIS Debian 12 Benchmark Level 1 - Server* profile.
+- Apply **all** remediations in the *CIS Debian 13 Benchmark Level 1 - Server* profile.
 
 > [!CAUTION]
-> **CIS deviation:** Skip *CIS Debian 12 Benchmark* control § 5.1.20 (**Disable SSH root login**) on PVE clusters and apply the mitigations below instead.
+> **CIS deviation:** Skip *CIS Debian 13 Benchmark* control § 5.1.21 (**Disable SSH root login**) on PVE clusters and apply the mitigations below instead.
 > **PVE clusters rely on `root@<node>` SSH for internal operations such as file replication and migrations.**
 > Proxmox configures `PermitRootLogin yes` by default to support these workflows. Do **not** set `PermitRootLogin no`.
 >
@@ -262,13 +262,15 @@ secure permissions, basic hardening of SSH, and kernel parameter tuning.
 >   PermitRootLogin yes
 > ```
 
-> [!NOTE]
-> Skip CIS Debian 12 Benchmark § 4 *Host-Based Firewall* **if** you enable the PVE Firewall in control [1.2.4](#124-enable-the-pve-firewall) of this guide.
+> [!CAUTION]
+> **Do not** disable `fuse` filesystem when applying CIS Debian 13 Benchmark § 1.1.1.11 *Ensure unused filesystems kernel modules are not available*
+> `fuse` is needed by PVE
 
-> [!TIP]
-> For Ansible automation, check out the *ansible-lockdown* role for Debian 12 CIS.
-> See [Appendix B](#b-example-ansible-snippets) for examples.
-> [Debian 12 CIS Role](https://galaxy.ansible.com/ui/standalone/roles/ansible-lockdown/deb12_cis/)
+> [!NOTE]
+> **Do not** disable filesystem that will be used (like `ceph`) when applying CIS Debian 13 Benchmark § 1.1.1.11 *Ensure unused filesystems kernel modules are not available*
+
+> [!NOTE]
+> Skip CIS Debian 13 Benchmark § 4 *Host-Based Firewall* **if** you enable the PVE Firewall in control [1.2.4](#124-enable-the-pve-firewall) of this guide.
 
 **Execution Status**
 
@@ -277,7 +279,7 @@ secure permissions, basic hardening of SSH, and kernel parameter tuning.
 
 ---
 
-##### 1.1.2 Apply Debian 12 CIS Level 2
+##### 1.1.2 Apply Debian 13 CIS Level 2
 
 **Level 2**
 
@@ -287,14 +289,11 @@ May impact certain workloads or third-party software.
 
 **Measures**
 
-- Apply **all** remediations in the *CIS Debian 12 Benchmark Level 2 - Server* profile after completing Level 1.
+- Apply **all** remediations in the *CIS Debian 13 Benchmark Level 2 - Server* profile after completing Level 1.
 - Validate services such as Ceph, ZFS, and PBS in a **lab** before rolling out to production.
 
-> [!WARNING]
-> Controls have **not** yet been fully validated. Test thoroughly.
-
 > [!CAUTION]
-> **CIS deviation:** Skip *CIS Debian 12 Benchmark* § 5.1.8 (**DisableForwarding**) on PVE clusters and apply the mitigation below instead.
+> **CIS deviation:** Skip *CIS Debian 13 Benchmark* § 5.1.8 (**DisableForwarding**) on PVE clusters and apply the mitigation below instead.
 > On PVE clusters this **breaks secure live migration** (SSH‑tunneled QEMU migration) and other internal workflows that rely on TCP port forwarding.
 > Do **not** enable `DisableForwarding yes` globally.
 >
@@ -308,11 +307,6 @@ May impact certain workloads or third-party software.
 >   AllowAgentForwarding no
 >   PermitTunnel no
 > ```
-
-> [!TIP]
-> For Ansible automation, check out the *ansible-lockdown* role for Debian 12 CIS.
-> See [Appendix B](#b-example-ansible-snippets) for examples.
-> [Debian 12 CIS Role](https://galaxy.ansible.com/ui/standalone/roles/ansible-lockdown/deb12_cis/)
 
 **Execution Status**
 
@@ -360,6 +354,11 @@ Make sure the following lines are configured:
 - Monitor `/var/log/unattended-upgrades/unattended-upgrades.log` for failures.
 - Optionally set mail notification in `/etc/apt/apt.conf.d/50unattended-upgrades`.
 
+> [!TIP]
+> For Ansible automation, check out the *HomeSecExplorer* role for autoupdate.
+> See [Appendix B](#b-example-ansible-snippets) for examples.
+> [autoupdate Role](https://github.com/HomeSecExplorer/ansible-role-autoupdate)
+
 **Execution Status**
 
 - [ ] YES - Control implemented
@@ -372,13 +371,13 @@ Make sure the following lines are configured:
 **Level 2**
 
 **Description**\
-Apply the recommended server and client-side hardening settings from the ssh-audit Debian 12 guides.
+Apply the recommended server and client-side hardening settings from the ssh-audit Debian 13 guides.
 These settings remove legacy ciphers, MACs, and key-exchange algorithms that baseline CIS controls still permit.
 
 **Measures**
 
-1. Follow the *ssh-audit* [Debian 12 **server** guide](https://www.sshaudit.com/hardening_guides.html#debian_12).
-2. Follow the *ssh-audit* [Debian 12 **client** guide](https://www.sshaudit.com/hardening_guides.html#debian_12_client).
+1. Follow the *ssh-audit* Debian 13 **server** guide.
+2. Follow the *ssh-audit* Debian 13 **client** guide.
 
 > [!CAUTION]
 > **Set root’s and other users SSH client to prefer RSA for cluster peers (to avoid host-key warnings).**
@@ -392,11 +391,10 @@ These settings remove legacy ciphers, MACs, and key-exchange algorithms that bas
 > # --- Everything else ---
 > ```
 
-> [!WARNING]
-> **Not yet validated on PVE clusters.**
-> The ssh-audit recommendation *6. Implement connection rate throttling* has not yet been tested. Test carefully in a lab before rollout.
-> If you choose to implement it, use the same firewall backend configured in PVE
-> Do not mix iptables and nftables rules on the same node; only one backend is active at a time.
+> [!TIP]
+> For Ansible automation, check out the *HomeSecExplorer* role for ssh-audit.
+> See [Appendix B](#b-example-ansible-snippets) for examples.
+> [sshaudit Role](https://github.com/HomeSecExplorer/ansible-role-sshaudit)
 
 **Execution Status**
 
@@ -415,7 +413,7 @@ LUKS2 is used for block-device encryption; keys are required at boot.
 
 **Measures**
 
-1. Install Debian 12 with LUKS-encrypted LVM **before** adding the Proxmox repository.
+1. Install Debian 13 with LUKS-encrypted LVM **before** adding the Proxmox repository.
 2. Store recovery keys in an offline password manager or HSM.
 3. **If you deploy ZFS:** consider **ZFS native encryption** at the dataset/zvol level instead of whole-disk LUKS, to allow per-dataset keys and more flexible unlock workflows.
  Choose based on your operational model and recovery plan.
@@ -424,7 +422,7 @@ LUKS2 is used for block-device encryption; keys are required at boot.
 > Controls have **not** yet been validated. Test thoroughly.
 
 > [!NOTE]
-> Performance impact is typically < 5 % on modern CPUs with AES-NI.
+> Performance impact is typically <  5  % on modern CPUs with AES-NI.
 
 **Execution Status**
 
@@ -484,10 +482,18 @@ Enable Debian non-free-firmware alongside main and contrib to ensure required fi
 - Example `/etc/apt/sources.list`:
 
   ```ini
-  deb http://deb.debian.org/debian bookworm main contrib non-free-firmware
-  deb http://deb.debian.org/debian bookworm-updates main contrib non-free-firmware
-  deb http://security.debian.org/debian-security bookworm-security main contrib non-free-firmware
+  deb http://deb.debian.org/debian trixie main contrib non-free-firmware
+  deb http://deb.debian.org/debian trixie-updates main contrib non-free-firmware
+  deb http://security.debian.org/debian-security trixie-security main contrib non-free-firmware
   ```
+
+- Example deb822 format `/etc/apt/sources.list.d/debian.sources`:
+
+   ```ini
+   *
+   Components: main non-free-firmware contrib
+   *
+   ```
 
 - `apt update` then install required microcode and firmware packages as needed.
 
@@ -646,7 +652,7 @@ This is an **operational** control for maintainability and compliance evidence i
 **Level 1**
 
 **Description**\
-The PVE firewall is a cluster-aware abstraction over `iptables`/`nftables`. Enabling it **replaces** the raw host-based firewall controls described in *CIS Debian 12 Benchmark § 4*.
+The PVE firewall is a cluster-aware abstraction over `iptables`/`nftables`. Enabling it **replaces** the raw host-based firewall controls described in *CIS Debian 13 Benchmark § 4*.
 Maintain rules centrally in the GUI or API and inherit them down the object tree (Datacenter --> Cluster --> Node --> VM/CT).
 
 **Measures**
@@ -668,7 +674,7 @@ Maintain rules centrally in the GUI or API and inherit them down the object tree
 **Level 2**
 
 **Description**\
-The PVE firewall is a cluster-aware abstraction over `iptables`/`nftables`. When enabled it **replaces** the host-based firewall controls in *CIS Debian 12 Benchmark § 4*.
+The PVE firewall is a cluster-aware abstraction over `iptables`/`nftables`. When enabled it **replaces** the host-based firewall controls in *CIS Debian 13 Benchmark § 4*.
 Rules can be maintained centrally (GUI or API) and inherited down the object tree (Datacenter --> Cluster --> Node --> VM/CT).
 Setting the default **FORWARD** policy to **DROP** blocks all inter-guest or routed traffic unless you explicitly allow it, hardening the cluster against lateral movement.
 
@@ -734,6 +740,10 @@ In multi‑tenant or mixed‑trust clusters, **disable KSM**. In single‑tenant
    echo 0 > /sys/kernel/mm/ksm/run
    ```
 
+- Verify that every VM has `Allow KSM` set to **false**
+   - `VM --> Hardware --> Memory` --> `Allow KSM`: **false**
+   - `qm set <<VMID>> --allow-ksm 0`
+
 **Execution Status**
 
 - [ ] YES - Control implemented
@@ -741,12 +751,12 @@ In multi‑tenant or mixed‑trust clusters, **disable KSM**. In single‑tenant
 
 ---
 
-##### 1.2.7 Avoid LXC - Run Container Platforms Inside VMs
+##### 1.2.7 Avoid LXC/OCI - Run Container Platforms Inside VMs
 
 **Level 1**
 
 **Description**\
-Do **not** use LXC containers on the Proxmox host. Instead, run container platforms (e.g., Docker, Kubernetes) inside a fully virtualized VM.
+Do **not** use LXC/OCI containers on the Proxmox host. Instead, run container platforms (e.g., Docker, Kubernetes) inside a fully virtualized VM.
 This ensures proper isolation and keeps the hypervisor dedicated to virtualization only.
 
 **Measures**
@@ -767,7 +777,7 @@ This ensures proper isolation and keeps the hypervisor dedicated to virtualizati
 **Level 1**
 
 **Description**\
-Prefer control **1.2.7 Avoid LXC - Run Container Platforms Inside VMs**. If that is not an option in your environment, run LXC containers unprivileged so that the container's root user is mapped to an unprivileged host UID/GID via user namespaces.
+Prefer control **1.2.7 Avoid LXC/OCI - Run Container Platforms Inside VMs**. If that is not an option in your environment, run LXC/OCI containers unprivileged so that the container's root user is mapped to an unprivileged host UID/GID via user namespaces.
 This reduces the impact of container escapes and enables safer device and mount handling. Use privileged containers only when a specific, justified need exists.
 
 **Measures**
@@ -1060,7 +1070,7 @@ For automations, this step replaces password-based authentication with revocable
 
 **Measures**
 
-- `pveum user token add <<alice@pam myapp --expire 2025-12-31>>`
+- `pveum user token add <<alice@pam myapp --expire 2026-12-31>>`
 - Assign ACL on `<</vms/100>>` if the app only manages one VM.
 - Review assignments quarterly.
 
@@ -1355,21 +1365,21 @@ Encrypts client<->OSD and OSD<->OSD traffic using Ceph Messenger “secure” mo
 
    ```ini
    [global]
-   ms_bind_msgr2 = true         # bind messenger v2 (required for 'secure' modes)
-   ms_encrypt = true            # enable wire-encryption
-   ms_cluster_mode = secure     # require encryption on cluster network
-   ms_service_mode = secure     # all daemon service endpoints
-   ms_client_mode = secure      # require encryption on client network
-   ms_mon_client_mode = secure  # require encryption for MON client connections
-   ms_mon_cluster_mode = secure # require encryption within MON cluster
-   ms_mon_service_mode = secure # require encryption for MON service endpoints
+   auth_client_required = cephx    # require cephx auth for client connections
+   auth_cluster_required = cephx   # require cephx auth for daemon-to-daemon (cluster) traffic
+   auth_service_required = cephx   # require cephx auth for service endpoints (daemons/mon/mgr/osd)
+   ms_bind_msgr2 = true            # bind messenger v2 (required for 'secure' modes)
+   ms_encrypt = true               # enable wire-encryption
+   ms_cluster_mode = secure        # require encryption on cluster network
+   ms_service_mode = secure        # all daemon service endpoints
+   ms_client_mode = secure         # require encryption on client network
+   ms_mon_client_mode = secure     # require encryption for MON client connections
+   ms_mon_cluster_mode = secure    # require encryption within MON cluster
+   ms_mon_service_mode = secure    # require encryption for MON service endpoints
    ```
 
 2. Restart daemons:
    `systemctl restart ceph.target`
-
-> [!WARNING]
-> Controls have **not** yet been validated. Test thoroughly.
 
 **Execution Status**
 
@@ -1415,7 +1425,7 @@ Backs up the entire Proxmox VE host configuration, cluster files, networking, st
 
 **Measures**
 
-1. **Verify the client is present** (it ships with PVE 8, but older hosts may lack it):
+1. **Verify the client is present** (it ships with PVE 9, but older hosts may lack it):
 
    ```bash
    apt update && apt install proxmox-backup-client -y
@@ -1644,7 +1654,7 @@ Provides tamper-evident storage and allows for correlation of security events.
 
 **Measures**
 
-In **addition** to *CIS Debian 12 Benchmark § 6.1*, forward:
+In **addition** to *CIS Debian 13 Benchmark § 6.1*, forward:
 
 - `/var/log/pve*`
 
@@ -1695,8 +1705,9 @@ Detects capacity issues before they become outages.
 
 **Measures**
 
-- Export to Prometheus with `pve_exporter`.
-- Dashboards in Grafana.
+- Example:
+   - Export to Prometheus with `pve_exporter`.
+   - Dashboards in Grafana.
 
 > [!NOTE]
 > Or another **appropriate** monitoring solution.
@@ -1800,7 +1811,7 @@ Document deviations from this guide with justifications, risk acceptance, and ap
 
 ### A. CIS Benchmark
 
-All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Level 1** / **Level 2**), and remediations map **exclusively** to the **CIS Debian Linux 12 Benchmark v1.1.0 (2024-09-26)**.
+All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Level 1** / **Level 2**), and remediations map **exclusively** to the **CIS Debian Linux 13 Benchmark v1.0.0 (2025-12-16)**.
 
 ### B. Example Ansible Snippets
 
@@ -1809,47 +1820,31 @@ All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Le
 - name: Harden PVE
   hosts: pve
   become: true
-  become_method: ansible.builtin.su
   tasks:
 ```
 
-- CIS Level 1 *ansible-lockdown* role
+- HomeSecExplorer *ansible-role-sshaudit* role
 
-`ansible-galaxy role install ansible-lockdown.deb12_cis`
+`ansible-galaxy install HomeSecExplorer.sshaudit`
 
 ```yaml
-- name: Run ansible-lockdown Deb 12 CIS (Level 1)
+- name: Run HomeSecExplorer ansible-role-sshaudit
   ansible.builtin.include_role:
-    name: "ansible-lockdown.deb12_cis"
-    apply:
-      tags:
-        - level1-server
+    name: "HomeSecExplorer.sshaudit"
   vars:
-    deb12cis_disruption_high: true
-    deb12cis_section4: false
-    deb12cis_level_2: false
-    deb12cis_rule_5_1_20: false
-    deb12cis_time_sync_tool: chrony
-    deb12cis_remote_log_host: <<log.example.com>>
+    hsesa_ssh_audit_package_state: absent
+    hsesa_ssh_audit_test: false
+    hsesa_regenerate_ssh_host_keys: false
 ```
 
-- CIS Level 2 *ansible-lockdown* role
+- HomeSecExplorer *ansible-role-autoupdate* role
 
-`ansible-galaxy role install ansible-lockdown.deb12_cis`
+`ansible-galaxy install HomeSecExplorer.autoupdate`
 
 ```yaml
-- name: Run ansible-lockdown Deb 12 CIS (Level 2)
+- name: Run HomeSecExplorer ansible-role-autoupdate
   ansible.builtin.include_role:
-    name: "ansible-lockdown.deb12_cis"
-    apply:
-      tags:
-        - level2-server
-  vars:
-    deb12cis_disruption_high: true
-    deb12cis_section4: false
-    deb12cis_rule_5_1_20: false
-    deb12cis_time_sync_tool: chrony
-    deb12cis_remote_log_host: <<log.example.com>>
+    name: "HomeSecExplorer.autoupdate"
 ```
 
 ### C. Recovery-Drill Checklist
@@ -1883,7 +1878,4 @@ All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Le
 
 | Version | Date       | Author              | Key Changes                                    | Reviewed By |
 |---------|------------|---------------------|------------------------------------------------|-------------|
-| 0.9.0   | 2025-08-31 | HomeSecExplorer     | Initial creation.                              |   --------  |
-| 0.9.1   | 2025-09-25 | HomeSecExplorer     | Expanded guide: move Change Notes, 1.2.7 to 1.2.8, 3.3 to 3.4, 3.4 to 3.5; edit 1.1.5 (add ZFS), 1.2.2 (IPMI), rephrase 1.2.3, 1.2.8, 4.2.2/4.4; added 1.1.7 non-free-firmware, 1.1.8 CPU microcode, 2.1.4 break-glass access with password policy, 3.3 Ceph pool sizing and failure domains, Appendix D Installation checklists Host&VMs; minor edits. |   --------  |
-| 0.9.2   | 2025-10-05 | HomeSecExplorer     | Remove 1.1.6 noatime mount option |   --------  |
-| 0.9.3   | 2025-12-30 | HomeSecExplorer     | Extend `pve`-command examples in some sections; minor changes |   --------  |
+| 0.9.0   | 2025-12-30 | HomeSecExplorer     | Initial creation.                              |   --------  |

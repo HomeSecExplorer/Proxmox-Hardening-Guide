@@ -1,6 +1,6 @@
-# Proxmox Backup Server 3.x Hardening Guide
+# Proxmox Backup Server 4.x Hardening Guide
 
-### Version 0.9.3 - December 30, 2025
+### Version 0.9.0 - December 30, 2025
 
 ### Author: [HomeSecExplorer](https://github.com/HomeSecExplorer)
 
@@ -52,8 +52,8 @@ By continuing to use this document you acknowledge that you have read, understoo
 3. [Recommendations](#recommendations)
    - [1 Initial Setup](#1-initial-setup)
       - [1.1 Base OS](#11-base-os)
-         - [1.1.1 Apply Debian 12 CIS Level 1](#111-apply-debian-12-cis-level-1)
-         - [1.1.2 Apply Debian 12 CIS Level 2](#112-apply-debian-12-cis-level-2)
+         - [1.1.1 Apply Debian 13 CIS Level 1](#111-apply-debian-13-cis-level-1)
+         - [1.1.2 Apply Debian 13 CIS Level 2](#112-apply-debian-13-cis-level-2)
          - [1.1.3 Configure Automatic Security Updates](#113-configure-automatic-security-updates)
          - [1.1.4 Apply ssh-audit Hardening Profile](#114-apply-ssh-audit-hardening-profile)
          - [1.1.5 Enable Full-Disk Encryption](#115-enable-full-disk-encryption)
@@ -124,7 +124,7 @@ By continuing to use this document you acknowledge that you have read, understoo
 
 ### Usage Information
 
-This guide provides **prescriptive hardening guidance** for Proxmox Backup Server 3.
+This guide provides **prescriptive hardening guidance** for Proxmox Backup Server 4.
 It does **not** guarantee absolute security;
 integrate it into a comprehensive cybersecurity program. Always approach changes with caution and follow a structured test-and-release process.
 
@@ -146,7 +146,7 @@ integrate it into a comprehensive cybersecurity program. Always approach changes
 
 ### Target Technology Details
 
-This guidance was developed and validated on **Proxmox Backup Server 3** running on **Debian 12 “bookworm”** (x86-64).
+This guidance was developed and validated on **Proxmox Backup Server 4** running on **Debian 13 “bookworm”** (x86-64).
 
 #### Assumptions
 
@@ -155,7 +155,7 @@ This guidance was developed and validated on **Proxmox Backup Server 3** running
 
 #### Installation Note
 
-To satisfy several CIS Debian Benchmark controls (for example, partition layout), install **Debian 12 first** and then add the Proxmox Backup Server repository **instead of** using the Proxmox ISO installer.
+To satisfy several CIS Debian Benchmark controls (for example, partition layout), install **Debian 13 first** and then add the Proxmox Backup Server repository **instead of** using the Proxmox ISO installer.
 
 #### Pre-deployment Checklist
 
@@ -174,7 +174,7 @@ To satisfy several CIS Debian Benchmark controls (for example, partition layout)
 
 ### References
 
-- *CIS Debian Linux 12 Benchmark* - [CIS Debian](https://www.cisecurity.org/benchmark/debian_linux)
+- *CIS Debian Linux 13 Benchmark* - [CIS Debian](https://www.cisecurity.org/benchmark/debian_linux)
 - *Proxmox Backup Server Administration Guide* - [PBS Admin Guide](https://pbs.proxmox.com/docs/index.html)
 - *Debian Security Hardening Manual* - [Debian hardening](https://www.debian.org/doc/manuals/securing-debian-manual/index.en.html)
 
@@ -196,8 +196,8 @@ Update the table after **every** hardware or configuration change.
 
 | Hostname | IP Address | Role           | OS Version | CIS Level | Hardened On | Location | Notes           |
 | -------- | ---------- | -------------- | ---------- | --------- | ----------- | -------- | --------------- |
-| pbs01    | 10.0.10.20 | Primary PBS    | Debian 12  | Level 1   | Jul 2025    | DC1-R1   | No subscription |
-| pbs02    | 10.0.10.21 | Secondary PBS  | Debian 12  | Level 1   | Jul 2025    | DC2-R1   | No subscription |
+| pbs01    | 10.0.10.20 | Primary PBS    | Debian 13  | Level 1   | Dec 2025    | DC1-R1   | No subscription |
+| pbs02    | 10.0.10.21 | Secondary PBS  | Debian 13  | Level 2   | Dec 2025    | DC2-R1   | No subscription |
 
 ### Hardening Level Selection
 
@@ -219,26 +219,21 @@ Apply these controls during or immediately after installation. Retrofitting them
 
 ---
 
-##### 1.1.1 Apply Debian 12 CIS Level 1
+##### 1.1.1 Apply Debian 13 CIS Level 1
 
 **Level 1**
 
 **Description**\
-Establishes a secure **minimum** configuration for Debian 12 that balances security with stability. Controls include partitioning,
+Establishes a secure **minimum** configuration for Debian 13 that balances security with stability. Controls include partitioning,
 secure permissions, basic hardening of SSH, and kernel parameter tuning.
 
 **Measures**
 
-- Apply **all** remediations in the *CIS Debian 12 Benchmark Level 1 - Server* profile.
+- Apply **all** remediations in the *CIS Debian 13 Benchmark Level 1 - Server* profile.
 
 > [!NOTE]
-> During the *CIS Debian 12 Benchmark § 4 (Host-Based Firewall) remediation*, remember to **allow** Proxmox Backup Server traffic.
+> During the *CIS Debian 13 Benchmark § 4 (Host-Based Firewall) remediation*, remember to **allow** Proxmox Backup Server traffic.
 > For more details look at [1.2.6](#126-firewall-the-apigui)
-
-> [!TIP]
-> For Ansible automation, check out the *ansible-lockdown* role for Debian 12 CIS.
-> See [Appendix B](#b-example-ansible-snippets) for examples.
-> [Debian 12 CIS Role](https://galaxy.ansible.com/ui/standalone/roles/ansible-lockdown/deb12_cis/)
 
 **Execution Status**
 
@@ -247,7 +242,7 @@ secure permissions, basic hardening of SSH, and kernel parameter tuning.
 
 ---
 
-##### 1.1.2 Apply Debian 12 CIS Level 2
+##### 1.1.2 Apply Debian 13 CIS Level 2
 
 **Level 2**
 
@@ -257,16 +252,8 @@ May impact certain workloads or third-party software.
 
 **Measures**
 
-- Apply **all** remediations in the *CIS Debian 12 Benchmark Level 2 - Server* profile after completing Level 1.
+- Apply **all** remediations in the *CIS Debian 13 Benchmark Level 2 - Server* profile after completing Level 1.
 - Validate services such as Ceph, ZFS, and PBS in a **lab** before rolling out to production.
-
-> [!WARNING]
-> Controls have **not** yet been validated. Test thoroughly.
-
-> [!TIP]
-> For Ansible automation, check out the *ansible-lockdown* role for Debian 12 CIS.
-> See [Appendix B](#b-example-ansible-snippets) for examples.
-> [Debian 12 CIS Role](https://galaxy.ansible.com/ui/standalone/roles/ansible-lockdown/deb12_cis/)
 
 **Execution Status**
 
@@ -314,6 +301,11 @@ Make sure the following lines are configured:
 - Monitor `/var/log/unattended-upgrades/unattended-upgrades.log` for failures.
 - Optionally set mail notification in `/etc/apt/apt.conf.d/50unattended-upgrades`.
 
+> [!TIP]
+> For Ansible automation, check out the *HomeSecExplorer* role for autoupdate.
+> See [Appendix B](#b-example-ansible-snippets) for examples.
+> [autoupdate Role](https://github.com/HomeSecExplorer/ansible-role-autoupdate)
+
 **Execution Status**
 
 - [ ] YES - Control implemented
@@ -326,13 +318,18 @@ Make sure the following lines are configured:
 **Level 2**
 
 **Description**\
-Apply the recommended server and client-side hardening settings from the ssh-audit Debian 12 guides.
+Apply the recommended server and client-side hardening settings from the ssh-audit Debian 13 guides.
 These settings remove legacy ciphers, MACs, and key-exchange algorithms that baseline CIS controls still permit.
 
 **Measures**
 
-1. Follow the *ssh-audit* [Debian 12 **server** guide](https://www.sshaudit.com/hardening_guides.html#debian_12).
-2. Follow the *ssh-audit* [Debian 12 **client** guide](https://www.sshaudit.com/hardening_guides.html#debian_12_client).
+1. Follow the *ssh-audit* Debian 13 **server** guide.
+2. Follow the *ssh-audit* Debian 13 **client** guide.
+
+> [!TIP]
+> For Ansible automation, check out the *HomeSecExplorer* role for ssh-audit.
+> See [Appendix B](#b-example-ansible-snippets) for examples.
+> [sshaudit Role](https://github.com/HomeSecExplorer/ansible-role-sshaudit)
 
 **Execution Status**
 
@@ -351,7 +348,7 @@ LUKS2 is used for block-device encryption; keys are required at boot.
 
 **Measures**
 
-1. Install Debian 12 with LUKS-encrypted LVM **before** adding the Proxmox repository.
+1. Install Debian 13 with LUKS-encrypted LVM **before** adding the Proxmox repository.
 2. Store recovery keys in an offline password manager or HSM.
 3. **If you deploy ZFS:** consider **ZFS native encryption** at the dataset/zvol level instead of whole-disk LUKS, to allow per-dataset keys and more flexible unlock workflows.
  Choose based on your operational model and recovery plan.
@@ -385,6 +382,14 @@ Enable Debian non-free-firmware alongside main and contrib to ensure required fi
   deb http://deb.debian.org/debian bookworm-updates main contrib non-free-firmware
   deb http://security.debian.org/debian-security bookworm-security main contrib non-free-firmware
   ```
+
+- Example deb822 format `/etc/apt/sources.list.d/debian.sources`:
+
+   ```ini
+   *
+   Components: main non-free-firmware contrib
+   *
+   ```
 
 - `apt update` then install required microcode and firmware packages as needed.
 
@@ -753,7 +758,7 @@ For automations, this step replaces password-based authentication with revocable
 
 **Measures**
 
-- `proxmox-backup-manager user generate-token <<alice@pbs client1 --expire 2025-12-31>>`
+- `proxmox-backup-manager user generate-token <<alice@pbs client1 --expire 2026-12-31>>`
 - Assign ACL on `<</datastore/store1>>` if the application should access only that datastore.
    - `proxmox-backup-manager acl update <</datastore/store1>> <<DatastoreAdmin>> --auth-id <<alice@pbs>>`
 - Review assignments quarterly.
@@ -1276,7 +1281,7 @@ Provides tamper-evident storage and allows for correlation of security events.
 
 **Measures**
 
-In **addition** to *CIS Debian 12 Benchmark § 6.1*, forward:
+In **addition** to *CIS Debian 13 Benchmark § 6.1*, forward:
 
 - `/var/log/proxmox-backup/api/access.log`
 - `/var/log/proxmox-backup/api/auth.log`
@@ -1329,8 +1334,9 @@ Detects capacity issues before they become outages.
 
 **Measures**
 
-- Export to Prometheus with `node_exporter`.
-- Dashboards in Grafana.
+- Example:
+   - Export to Prometheus with `pve_exporter`.
+   - Dashboards in Grafana.
 
 > [!NOTE]
 > Or another **appropriate** monitoring solution.
@@ -1442,47 +1448,31 @@ All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Le
 - name: Harden PBS
   hosts: pbs
   become: true
-  become_method: ansible.builtin.su
   tasks:
 ```
 
-- CIS Level 1 *ansible-lockdown* role
-- Remember to open any required firewall ports after applying hardening.
+- HomeSecExplorer *ansible-role-sshaudit* role
 
-`ansible-galaxy role install ansible-lockdown.deb12_cis`
+`ansible-galaxy install HomeSecExplorer.sshaudit`
 
 ```yaml
-- name: Run ansible-lockdown Deb 12 CIS (Level 1)
+- name: Run HomeSecExplorer ansible-role-sshaudit
   ansible.builtin.include_role:
-    name: "ansible-lockdown.deb12_cis"
-    apply:
-      tags:
-        - level1-server
+    name: "HomeSecExplorer.sshaudit"
   vars:
-    deb12cis_disruption_high: true
-    deb12cis_level_2: false
-    deb12cis_time_sync_tool: chrony
-    deb12cis_remote_log_host: <<log.example.com>>
-    deb12cis_ufw_allow_out_ports: <<set as needed>>
+    hsesa_ssh_audit_package_state: absent
+    hsesa_ssh_audit_test: false
+    hsesa_regenerate_ssh_host_keys: false
 ```
 
-- CIS Level 2 *ansible-lockdown* role
-- Remember to open any required firewall ports after applying hardening.
+- HomeSecExplorer *ansible-role-autoupdate* role
 
-`ansible-galaxy role install ansible-lockdown.deb12_cis`
+`ansible-galaxy install HomeSecExplorer.autoupdate`
 
 ```yaml
-- name: Run ansible-lockdown Deb 12 CIS (Level 2)
+- name: Run HomeSecExplorer ansible-role-autoupdate
   ansible.builtin.include_role:
-    name: "ansible-lockdown.deb12_cis"
-    apply:
-      tags:
-        - level2-server
-  vars:
-    deb12cis_disruption_high: true
-    deb12cis_time_sync_tool: chrony
-    deb12cis_remote_log_host: <<log.example.com>>
-    deb12cis_ufw_allow_out_ports: <<set as needed>>
+    name: "HomeSecExplorer.autoupdate"
 ```
 
 ### C. Recovery-Drill Checklist
@@ -1505,7 +1495,4 @@ All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Le
 
 | Version | Date       | Author              | Key Changes                                    | Reviewed By |
 |---------|------------|---------------------|------------------------------------------------|-------------|
-| 0.9.0   | 2025-08-31 | HomeSecExplorer     | Initial creation.                              |   --------  |
-| 0.9.1   | 2025-09-25 | HomeSecExplorer     | Expanded guide: move Change Notes; edit 1.1.5 (add ZFS), 1.2.2 (IPMI), rephrase 1.2.3, 4.2.2; added 1.1.6 non-free-firmware, 1.1.7 CPU microcode, 2.1.4 break-glass access with password policy, Appendix D Installation checklists Host; minor edits. |   --------  |
-| 0.9.2   | 2025-10-05 | HomeSecExplorer     | Remove 1.2.4 relatime and ZFS atime=off; 1.2.5 noatime mount options |   --------  |
-| 0.9.3   | 2025-12-30 | HomeSecExplorer     | Extend `proxmox-backup-manager`-command examples in some sections; minor changes |   --------  |
+| 0.9.0   | 2025-12-30 | HomeSecExplorer     | Initial creation.                              |   --------  |
