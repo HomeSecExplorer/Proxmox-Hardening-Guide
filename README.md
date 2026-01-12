@@ -80,10 +80,10 @@ Choose the guide for your version: PVE 9 hardening, PBS 4 hardening, PVE 8 harde
 
 | Guide | Product | Guide Version | Path |
 |-------|---------|---------|------|
-| **PVE 9** | Proxmox Virtual Environment 9.x | 0.9.0 - 30 December 2025 | [`docs/pve9-hardening-guide.md`](docs/pve9-hardening-guide.md) |
-| **PBS 4** | Proxmox Backup Server 4.x | 0.9.0 - 30 December 2025 | [`docs/pbs4-hardening-guide.md`](docs/pbs4-hardening-guide.md) |
-| **PVE 8** | Proxmox Virtual Environment 8.x | 0.9.3 - 30 December 2025 | [`docs/pve8-hardening-guide.md`](docs/pve8-hardening-guide.md) |
-| **PBS 3** | Proxmox Backup Server 3.x | 0.9.3 - 30 December 2025 | [`docs/pbs3-hardening-guide.md`](docs/pbs3-hardening-guide.md) |
+| **PVE 9** | Proxmox Virtual Environment 9.x | 0.9.1 - 12 January 2026 | [`docs/pve9-hardening-guide.md`](docs/pve9-hardening-guide.md) |
+| **PBS 4** | Proxmox Backup Server 4.x | 0.9.1 - 12 January 2026 | [`docs/pbs4-hardening-guide.md`](docs/pbs4-hardening-guide.md) |
+| **PVE 8** | Proxmox Virtual Environment 8.x | 0.9.4 - 12 January 2026 | [`docs/pve8-hardening-guide.md`](docs/pve8-hardening-guide.md) |
+| **PBS 3** | Proxmox Backup Server 3.x | 0.9.4 - 12 January 2026 | [`docs/pbs3-hardening-guide.md`](docs/pbs3-hardening-guide.md) |
 
 **Key Benefits:**
 

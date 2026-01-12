@@ -5,21 +5,45 @@ For detailed changes, please refer to **Section Change Notes** within each guide
 
 ---
 
-## 2025-12-30
+## 2026-01-12
 
-### PVE9
+Thanks to Reddit feedback
+
+**PVE9:**
+
+- Added Design principles
+- Added 2.1.5 Privileged Access Model (Root, Sudo, and Shell Access)
+
+**PBS4:**
+
+- Added Design principles
+- Added 2.1.5 Privileged Access Model (Root, Sudo, and Shell Access)
+
+**PVE8:**
+
+- Added Design principles
+- Added 2.1.5 Privileged Access Model (Root, Sudo, and Shell Access)
+
+**PBS3:**
+
+- Added Design principles
+- Added 2.1.5 Privileged Access Model (Root, Sudo, and Shell Access)
+
+## 2025-12-29
+
+**PVE9:**
 
 - Initial release
 
-### PBS4
+**PBS4:**
 
 - Initial release
 
-### PVE8
+**PVE8:**
 
 - Minor improvments
 
-### PBS3
+**PBS3:**
 
 - Minor improvments
 
@@ -27,11 +51,11 @@ For detailed changes, please refer to **Section Change Notes** within each guide
 
 Thanks to [Onslow](https://forum.proxmox.com/members/onslow.317257/)
 
-### PVE8
+**PVE8:**
 
 - Removed noatime in 1.1.6
 
-### PBS3
+**PBS3:**
 
 - Removed relatime and atime=off in 1.2.4
 - Removed noatime in 1.2.5
@@ -40,7 +64,7 @@ Thanks to [Onslow](https://forum.proxmox.com/members/onslow.317257/)
 
 Thanks to Reddit feedback and [JamesOBenson](https://github.com/JamesOBenson)
 
-### PBS8
+**PVE8:**
 
 - Moved section 1.2.7 to 1.2.8
 - Moved section 3.3 to 3.4
@@ -54,7 +78,7 @@ Thanks to Reddit feedback and [JamesOBenson](https://github.com/JamesOBenson)
 - Added Appendix D
 - Minor wording and formatting improvements
 
-### PBS3
+**PBS3:**
 
 - Moved change notes out of appendix
 - Added 1.1.6: Enable “non-free-firmware” repositories
