@@ -12,7 +12,7 @@ This project contains **documentation** and example snippets. There is no networ
 
 ## Reporting a vulnerability
 
-- **Preferred**: open a **Private disclosure** via GitHub Security Advisories (Security → Advisories → Report a vulnerability), or
+- **Preferred**: open a **Private disclosure** via GitHub Security Advisories (Security --> Advisories --> Report a vulnerability), or
 - If not available, open an **Issue** with minimal details and request to convert it to a private advisory.
 
 > [!WARNING]

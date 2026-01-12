@@ -1,6 +1,6 @@
 # Proxmox Backup Server 3.x Hardening Guide
 
-### Version 0.9.3 - December 30, 2025
+### Version 0.9.4 - January 12, 2026
 
 ### Author: [HomeSecExplorer](https://github.com/HomeSecExplorer)
 
@@ -49,6 +49,7 @@ By continuing to use this document you acknowledge that you have read, understoo
    - [Definitions & Abbreviations](#definitions--abbreviations)
    - [System Inventory Template](#system-inventory-template)
    - [Hardening Level Selection](#hardening-level-selection)
+   - [Design principles](#design-principles)
 3. [Recommendations](#recommendations)
    - [1 Initial Setup](#1-initial-setup)
       - [1.1 Base OS](#11-base-os)
@@ -68,12 +69,13 @@ By continuing to use this document you acknowledge that you have read, understoo
          - [1.2.4 Dedicated Filesystems for Datastores](#124-dedicated-filesystems-for-datastores)
          - [1.2.5 Network-backed Datastores (NFS/SMB)](#125-network-backed-datastores-nfssmb)
          - [1.2.6 Firewall the API/GUI](#126-firewall-the-apigui)
-   - [2 GUI Access & ACLs](#2-gui-access--acls)
+   - [2 Users, API and GUI](#2-users-api-and-gui)
       - [2.1 Users](#21-users)
          - [2.1.1 Use Personalized Accounts](#211-use-personalized-accounts)
          - [2.1.2 Grant Least Privilege](#212-grant-least-privilege)
          - [2.1.3 Enable 2FA](#213-enable-2fa)
          - [2.1.4 Break-glass (Emergency) Access](#214-break-glass-emergency-access)
+         - [2.1.5 Privileged Access Model](#215-privileged-access-model-root-sudo-and-shell-access)
       - [2.2 API Tokens](#22-api-tokens)
          - [2.2.1 Use Scoped API Tokens](#221-use-scoped-api-tokens)
          - [2.2.2 Grant Least Privilege to Tokens](#222-grant-least-privilege-to-tokens)
@@ -206,6 +208,17 @@ Update the table after **every** hardware or configuration change.
 | **1 - Baseline** | Minimal operational impact; mandatory for **all** PBS nodes.                 | Always                                                  |
 | **2 - Enhanced** | Additional defense-in-depth controls. Evaluate each control for feasibility. | Regulated or high-security workloads                    |
 | **3 - Advanced** | Maximum hardening; may introduce downtime or complexity.                     | Only when data sensitivity or threat model justifies it |
+
+### Design principles
+
+These principles define the intent behind the checklist items below. They guide the most important design decisions and set boundaries for what this guide assumes.
+
+- **PBS is a backup vault, not a general-purpose server.** Avoid using PBS as a NAS, Docker host, app server, or anything else. Extra services add risk to your last line of defense.
+- **Strong separation of duties and access paths.** Design so one compromised credential does not equal “delete all backups.” Restrict who can modify datastores, retention, prune policies, and permissions. Limit where PBS is reachable from.
+- **Retention and destructive actions are security controls.** Use retention and pruning intentionally and monitor destructive operations. Incidents often target recovery options first.
+- **Assume the network is hostile; encrypt and restrict.** Encrypt where appropriate, protect encryption keys, and restrict outbound access from PBS. Backups often contain the most sensitive data in the environment.
+- **Offsite or offline backups are required for real resilience.** PBS is excellent for fast restores, but you still need a separate recovery source for worst-case scenarios.
+- **Restore testing is part of hardening.** Regularly test file restores, VM restores, and “whole host rebuild” assumptions. A backup that was never tested is not a reliable control.
 
 ---
 
@@ -649,7 +662,7 @@ Restrict access to SSH and PBS GUI/API on TCP 8007 to trusted management network
 
 ---
 
-### 2 GUI Access & ACLs
+### 2 Users, API and GUI
 
 #### 2.1 Users
 
@@ -734,6 +747,59 @@ Maintain a sealed, offline “break-glass” root credential for emergencies **w
    - min lowercase: 3
    - min numbers: 3
    - min special: 3
+
+**Execution Status**
+
+- [ ] YES - Control implemented
+- [ ] NO  - Control not implemented
+
+---
+
+##### 2.1.5 Privileged Access Model (Root, Sudo, and Shell Access)
+
+**Level 1**
+
+**Description**\
+Routine administration should be performed through named user accounts with least-privilege access. Keep `root@pam` for emergencies only and ensure actions are attributable to an individual user.
+PBS adds an additional layer through PBS RBAC (roles + paths) and API tokens. This section defines what “normal” administration looks like on a hardened system.
+
+**Measures**
+
+- Use the PBS UI/API for day-to-day administration with named accounts and least-privilege RBAC.
+- Treat interactive OS shell access as the exception, not the norm.
+- Treat `root@pam` as break-glass only (see [2.1.4](#214-break-glass-emergency-access)). Do not use it for daily operations.
+
+- Define access tiers (lower tier number = higher privilege and higher risk):
+   - Tier 0: `root@pam` break-glass only
+   - Tier 1: named `@pam` users with shell access, optionally SSH and/or sudo (small, documented group)
+   - Tier 2: named users with PBS RBAC (GUI/API, no shell)
+
+- Root account and SSH handling:
+   - Disable root SSH password authentication. Prefer key-based access only.
+   - If you run a cluster, restrict root SSH to required cluster networks (see [1.1.1 CIS deviation](#111-apply-debian-13-cis-level-1)).
+
+- Sudoers design patterns:
+   - Grant sudo only when needed and only to Tier 1 OS shell admins.
+   - Document who has sudo rights and review it regularly.
+   - Optionally define fine-grained sudo roles (for example, read-only diagnostics vs OS maintenance).
+
+- Decide when OS shell access is allowed:
+   - If the task can be done via GUI/API, use Tier 2 RBAC and do not use SSH.
+   - If the task requires host OS changes (packages, kernel, drivers, filesystem repair), use SSH as Tier 1 and elevate via sudo when needed.
+   - If the task is emergency recovery, use Tier 1/0 break-glass access.
+
+- Audit and logging:
+   - Forward GUI/API access logs to centralized logging (see [5.1.1](#511-centralized-logging)).
+   - Enforce sudo logging and forward sudo logs to centralized logging.
+   - Keep `/etc/proxmox-backup` auditd coverage (see [5.1.2](#512-auditd-for-etcproxmox-backup)).
+
+- API tokens:
+   - Use dedicated service users and API tokens for automation (no shared credentials).
+   - Scope ACLs to the minimum required paths and permissions.
+   - Set expiration and rotate tokens regularly.
+   - Never use `root@pam` API tokens for automation.
+   - See [2.2 API Tokens](#22-api-tokens) for details.
+   - **See [2.2 API Tokens](#22-api-tokens) for details.**
 
 **Execution Status**
 
@@ -1509,3 +1575,4 @@ All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Le
 | 0.9.1   | 2025-09-25 | HomeSecExplorer     | Expanded guide: move Change Notes; edit 1.1.5 (add ZFS), 1.2.2 (IPMI), rephrase 1.2.3, 4.2.2; added 1.1.6 non-free-firmware, 1.1.7 CPU microcode, 2.1.4 break-glass access with password policy, Appendix D Installation checklists Host; minor edits. |   --------  |
 | 0.9.2   | 2025-10-05 | HomeSecExplorer     | Remove 1.2.4 relatime and ZFS atime=off; 1.2.5 noatime mount options |   --------  |
 | 0.9.3   | 2025-12-30 | HomeSecExplorer     | Extend `proxmox-backup-manager`-command examples in some sections; minor changes |   --------  |
+| 0.9.4   | 2026-01-12 | HomeSecExplorer     | added: 2.1.5, Design principles                |   --------  |
