@@ -271,6 +271,7 @@ secure permissions, basic hardening of SSH, and kernel parameter tuning.
 > PermitRootLogin no
 > Match Address <<10.0.10.0/24,10.0.20.0/24>>
 >   PermitRootLogin yes
+> Match all
 > ```
 
 > [!CAUTION]
