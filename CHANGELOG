@@ -5,6 +5,18 @@ For detailed changes, please refer to **Section Change Notes** within each guide
 
 ---
 
+## 2026-02-09
+
+Thanks to 23hp
+
+**PVE9:**
+
+- Fix 1.1.1 sshd Match 'End'
+
+**PVE8:**
+
+- Fix 1.1.1 sshd Match 'End'
+
 ## 2026-01-12
 
 Thanks to Reddit feedback

@@ -1,6 +1,6 @@
 # Proxmox VE 9.x Hardening Guide
 
-### Version 0.9.1 - January 12, 2026
+### Version 0.9.2 - February 09, 2026
 
 ### Author: [HomeSecExplorer](https://github.com/HomeSecExplorer)
 
@@ -1945,3 +1945,4 @@ All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Le
 |---------|------------|---------------------|------------------------------------------------|-------------|
 | 0.9.0   | 2025-12-30 | HomeSecExplorer     | Initial creation.                              |   --------  |
 | 0.9.1   | 2026-01-12 | HomeSecExplorer     | added: 2.1.5, Design principles                |   --------  |
+| 0.9.2   | 2026-02-09 | 23hp                | fix: 1.1.1, sshd Match 'End'                   | HomeSecExplorer |

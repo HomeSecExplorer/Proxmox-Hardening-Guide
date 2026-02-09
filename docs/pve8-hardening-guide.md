@@ -1,6 +1,6 @@
 # Proxmox VE 8.x Hardening Guide
 
-### Version 0.9.4 - January 12, 2026
+### Version 0.9.5 - February 09, 2026
 
 ### Author: [HomeSecExplorer](https://github.com/HomeSecExplorer)
 
@@ -271,6 +271,7 @@ secure permissions, basic hardening of SSH, and kernel parameter tuning.
 > PermitRootLogin no
 > Match Address <<10.0.10.0/24,10.0.20.0/24>>
 >   PermitRootLogin yes
+> Match all
 > ```
 
 > [!NOTE]
@@ -1952,3 +1953,4 @@ All CIS control references - section numbers (e.g., **1.1.1**), Level tags (**Le
 | 0.9.2   | 2025-10-05 | HomeSecExplorer     | Remove 1.1.6 noatime mount option |   --------  |
 | 0.9.3   | 2025-12-30 | HomeSecExplorer     | Extend `pve`-command examples in some sections; minor changes |   --------  |
 | 0.9.4   | 2026-01-12 | HomeSecExplorer     | added: 2.1.5, Design principles                |   --------  |
+| 0.9.5   | 2026-02-09 | 23hp                | fix: 1.1.1, sshd Match 'End'                   | HomeSecExplorer |
